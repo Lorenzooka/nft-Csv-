@@ -32,6 +32,41 @@ document.addEventListener('DOMContentLoaded', () => {
   let tokenID = 1;
   let csvRows = [];
 
+  // Mode and language state
+  let mode = 'manual';
+  let language = 'en';
+
+  // Translation strings for English and Hungarian
+  const translations = {
+    en: {
+      modeLabel: 'Mode:',
+      langLabel: 'Language:',
+      baseImageLabel: 'Base image:',
+      randomize: 'Randomize',
+      exportBtn: '📦 Export PNG + Add to CSV',
+      downloadCsvBtn: '📄 Download CSV',
+    },
+    hu: {
+      modeLabel: 'Mód:',
+      langLabel: 'Nyelv:',
+      baseImageLabel: 'Alap kép:',
+      randomize: 'Véletlenszerű',
+      exportBtn: '📦 PNG export + hozzáadás CSV-hez',
+      downloadCsvBtn: '📄 CSV letöltése',
+    },
+  };
+
+  // Helper to apply translation strings to UI
+  function applyTranslations() {
+    const t = translations[language] || translations.en;
+    if (modeLabelEl) modeLabelEl.childNodes[0].textContent = t.modeLabel + ' ';
+    if (langLabelEl) langLabelEl.childNodes[0].textContent = t.langLabel + ' ';
+    if (baseImageLabelEl) baseImageLabelEl.childNodes[0].textContent = t.baseImageLabel + ' ';
+    if (randomizeBtn) randomizeBtn.textContent = t.randomize;
+    if (exportBtn) exportBtn.textContent = t.exportBtn;
+    if (downloadCsvBtn) downloadCsvBtn.textContent = t.downloadCsvBtn;
+  }
+
   // Control elements
   const uploadInput = document.getElementById('upload');
   const scaleInput = document.getElementById('scale');
@@ -63,6 +98,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('exportBtn');
   const downloadCsvBtn = document.getElementById('downloadCsvBtn');
   const csvTableBody = document.querySelector('#csvTable tbody');
+
+  // New controls for mode and language
+  const modeSelect = document.getElementById('modeSelect');
+  const langSelect = document.getElementById('langSelect');
+  const modeLabelEl = document.getElementById('modeLabel');
+  const langLabelEl = document.getElementById('langLabel');
+  const baseImageLabelEl = document.getElementById('baseImageLabel');
+
+  // Listen for mode changes
+  if (modeSelect) {
+    modeSelect.addEventListener('change', () => {
+      mode = modeSelect.value;
+      // If switched to auto and an image is already loaded, generate traits
+      if (mode === 'auto' && baseImg) {
+        generateAuto();
+      }
+    });
+  }
+  // Listen for language changes
+  if (langSelect) {
+    langSelect.addEventListener('change', () => {
+      language = langSelect.value;
+      applyTranslations();
+    });
+  }
 
   /* Utility to convert hex color to rgba string */
   function hexToRgba(hex, alpha = 1) {
@@ -283,7 +343,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const reader = new FileReader();
     reader.onload = () => {
       baseImg = new Image();
-      baseImg.onload = drawCanvas;
+      baseImg.onload = () => {
+        drawCanvas();
+        // If auto mode is selected, automatically generate traits, name and description
+        if (mode === 'auto') {
+          generateAuto();
+        }
+      };
       baseImg.src = reader.result;
     };
     reader.readAsDataURL(file);
@@ -425,6 +491,59 @@ document.addEventListener('DOMContentLoaded', () => {
     drawCanvas();
   });
 
+  /**
+   * Automatically generate traits, name and description for the current image.
+   * This helper randomizes the visual traits using the same logic as the
+   * Randomize button, then chooses a localized name and description based
+   * on the selected language. It updates the name and description fields
+   * so that Export will include these values.
+   */
+  function generateAuto() {
+    // Trigger randomization of visual parameters
+    randomizeBtn.click();
+    // Predefined names and descriptions for each supported language
+    const nameOptions = {
+      en: [
+        'Cosmic Penguin',
+        'Crypto Crusader',
+        'Galaxy Guardian',
+        'Stellar Voyager',
+        'Nebula Explorer',
+      ],
+      hu: [
+        'Kozmikus Pingvin',
+        'Kripto Lovag',
+        'Galaktikus Őrző',
+        'Csillag Utazó',
+        'Köd Vándor',
+      ],
+    };
+    const descriptionOptions = {
+      en: [
+        'A fearless explorer venturing through the stars.',
+        'An enigmatic warrior adorned with cosmic armor.',
+        'A guardian watching over the crypto cosmos.',
+        'A voyager traveling through nebulous realms.',
+        'A sentinel defending the galaxy’s secrets.',
+      ],
+      hu: [
+        'Egy bátor felfedező, aki a csillagok között jár.',
+        'Egy titokzatos harcos, kozmikus páncélba öltözve.',
+        'Egy őrző, aki vigyáz a kripto kozmoszra.',
+        'Egy utazó, aki ködös birodalmakon halad át.',
+        'Egy őrszem, aki védi a galaxis titkait.',
+      ],
+    };
+    const langKey = language in nameOptions ? language : 'en';
+    const nArr = nameOptions[langKey];
+    const dArr = descriptionOptions[langKey];
+    const chosenName = nArr[Math.floor(Math.random() * nArr.length)];
+    const chosenDesc = dArr[Math.floor(Math.random() * dArr.length)];
+    // Set the name template and description fields. Include token id placeholder
+    nameTemplateInput.value = `${chosenName} #{{id}}`;
+    descriptionTemplateInput.value = chosenDesc;
+  }
+
   /* Export current canvas to PNG and append a CSV row */
   exportBtn.addEventListener('click', () => {
     if (!baseImg) {
@@ -492,4 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial draw
   drawCanvas();
+  // Apply initial translations
+  applyTranslations();
 });
