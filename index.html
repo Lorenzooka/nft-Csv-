@@ -13,7 +13,21 @@
   <div class="wrapper">
     <!-- Control panel -->
     <div class="controls">
-      <label>
+      <label id="modeLabel">
+        Mode:
+        <select id="modeSelect">
+          <option value="manual">Manual</option>
+          <option value="auto">Automatic</option>
+        </select>
+      </label>
+      <label id="langLabel">
+        Language:
+        <select id="langSelect">
+          <option value="en">English</option>
+          <option value="hu">Magyar</option>
+        </select>
+      </label>
+      <label id="baseImageLabel">
         Base image:
         <input type="file" id="upload" accept="image/png, image/jpeg" />
       </label>
