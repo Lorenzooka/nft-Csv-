@@ -1,647 +1,166 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>All Star NFT – Kép & CSV Szimulátor (Offline)</title>
-  <style>
-    :root{
-      --bg:#0b0c10; --panel:#12141a; --ink:#e8edf3; --muted:#9aa4b2; --accent:#3A66FF; --gold:#C9A646;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(120deg,#0b0c10,#111319 40%,#0b0c10);color:var(--ink);font:14px/1.45 Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    header{padding:18px 20px;border-bottom:1px solid #1c2030;background:#0d0f15;position:sticky;top:0;z-index:10}
-    header h1{margin:0;font-size:16px;letter-spacing:.3px}
-    .wrap{display:grid;grid-template-columns:360px 1fr;gap:18px;padding:18px}
-    .card{background:var(--panel);border:1px solid #1b1f2a;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden}
-    .card h2{margin:0;padding:12px 14px;font-size:13px;letter-spacing:.25px;border-bottom:1px solid #1b1f2a;background:#0f1117;color:#cfd8e3}
-    .card .body{padding:12px 14px}
-    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
-    input[type="text"],input[type="number"],select{width:100%;padding:9px 10px;border:1px solid #2a2f3f;background:#0d1018;color:#e9eef6;border-radius:10px}
-    input[type="color"]{width:48px;height:32px;border:none;background:transparent}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #2a2f3f;border-radius:12px;background:#121623;color:#e8edf3;cursor:pointer}
-    .btn:hover{background:#151a29}
-    .btn.accent{border-color:#2748c7;background:#1a2240}
-    .btn.gold{border-color:#6e5a22;background:#19150c}
-    .stack{display:flex;flex-wrap:wrap;gap:8px}
-    .canvas-wrap{padding:12px;display:flex;justify-content:center;align-items:center;background:#0b0d14}
-    canvas{background:#111;max-width:100%;height:auto;border-radius:10px;border:1px solid #1b1f2a}
-    small.hint{color:#93a0b4;font-size:11px}
-    table{width:100%;border-collapse:collapse;font-size:12px}
-    th,td{padding:8px;border-bottom:1px solid #1b2033}
-    th{color:#a9b4c7;text-align:left}
-    .toolbar{display:flex;flex-wrap:wrap;gap:8px}
-    .pill{padding:6px 10px;border:1px solid #2a2f3f;border-radius:999px;color:#cfe0ff;background:#111522}
-    .grid-toggle{display:flex;align-items:center;gap:8px}
-    .footer-note{padding:10px 18px;color:#93a0b4;font-size:11px;border-top:1px solid #1b1f2a;background:#0f1117}
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Star NFT – Image & CSV Simulator</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>🐧 All Star NFT – Kép & CSV Szimulátor • 1024×1024 • Pixel-preserve</h1>
+    <h1>All Star NFT – Image & CSV Simulator</h1>
   </header>
-
-  <div class="wrap">
-    <!-- LEFT: Controls -->
-    <section class="card" aria-label="vezérlők">
-      <h2>⚙️ Vezérlők</h2>
-      <div class="body">
-        <label>Alapkép (PNG/JPG) – a karakter feltöltése</label>
-        <input id="fileInput" type="file" accept="image/*" />
-        <small class="hint">24×24 – 512×512 pixel sprite is jó. A vászon mindig 1024×1024 lesz.</small>
-
-        <div class="row" style="margin-top:10px">
-          <div>
-            <label>Skála (karakter méret) %</label>
-            <input id="scalePct" type="number" value="73" min="40" max="95" />
-          </div>
-          <div>
-            <label>Y eltolás (fel/le) px</label>
-            <input id="offsetY" type="number" value="0" min="-200" max="200" />
-          </div>
+  <div class="wrapper">
+    <!-- Control panel -->
+    <div class="controls">
+      <label>
+        Base image:
+        <input type="file" id="upload" accept="image/png, image/jpeg" />
+      </label>
+      <label>
+        Scale: <input type="range" id="scale" min="70" max="75" step="0.5" value="73" />
+        <span id="scaleVal">73%</span>
+      </label>
+      <label>
+        Vertical offset:
+        <input type="range" id="offsetY" min="-200" max="200" step="5" value="0" />
+        <span id="offsetYVal">0</span>
+      </label>
+      <label>
+        Outline: <input type="checkbox" id="outline" />
+      </label>
+      <fieldset>
+        <legend>Background</legend>
+        <div>
+          <label><input type="radio" name="bgType" value="solid" checked /> Solid</label>
+          <input type="color" id="bgColor1" value="#0b0c10" />
         </div>
-
-        <div class="row3" style="margin-top:8px">
-          <div class="grid-toggle">
-            <input id="nearest" type="checkbox" checked />
-            <label for="nearest" style="margin:0">Pixel élek megőrzése</label>
-          </div>
-          <div class="grid-toggle">
-            <input id="showGrid" type="checkbox" />
-            <label for="showGrid" style="margin:0">24×24 rács</label>
-          </div>
-          <div class="grid-toggle">
-            <input id="outline" type="checkbox" checked />
-            <label for="outline" style="margin:0">1–2 px körvonal</label>
-          </div>
+        <div>
+          <label><input type="radio" name="bgType" value="gradient" /> Gradient</label>
+          <input type="color" id="bgColor2" value="#14233a" />
+          <label>Angle:
+            <input type="number" id="bgAngle" value="45" min="0" max="360" />
+          </label>
         </div>
-
-        <hr style="border-color:#1b1f2a;margin:14px 0">
-
-        <h3 style="margin:6px 0 0;font-size:12px;color:#cfd8e3">🎨 Háttér</h3>
-        <div class="row">
-          <div>
-            <label>Háttér mód</label>
-            <select id="bgMode">
-              <option value="solid">Egyszínű</option>
-              <option value="grad">Gradiens</option>
-              <option value="none">Átlátszó</option>
-            </select>
-          </div>
-          <div>
-            <label>Gradiens szög (fok)</label>
-            <input id="bgAngle" type="number" value="45" min="0" max="360" />
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>Szín A</label>
-            <input id="bgA" type="color" value="#0b1020" />
-          </div>
-          <div>
-            <label>Szín B</label>
-            <input id="bgB" type="color" value="#233b7c" />
-          </div>
-        </div>
-
-        <hr style="border-color:#1b1f2a;margin:14px 0">
-
-        <h3 style="margin:6px 0 0;font-size:12px;color:#cfd8e3">✨ Aura</h3>
-        <div class="row">
-          <div>
-            <label>Aura típus</label>
-            <select id="auraType">
-              <option value="none">Nincs</option>
-              <option value="glow">Fényglória</option>
-              <option value="starry">Csillogó</option>
-              <option value="swirl">Örvény</option>
-              <option value="multicolor">Multicolor</option>
-            </select>
-          </div>
-          <div>
-            <label>Aura erő (0–1)</label>
-            <input id="auraStrength" type="number" value="0.65" min="0" max="1" step="0.05" />
-          </div>
-        </div>
-
-        <hr style="border-color:#1b1f2a;margin:14px 0">
-
-        <h3 style="margin:6px 0 0;font-size:12px;color:#cfd8e3">💎 Mellkaskristály</h3>
-        <div class="row">
-          <div>
-            <label>Forma</label>
-            <select id="crystalShape">
-              <option>spiral</option>
-              <option selected>diamond</option>
-              <option>star</option>
-              <option>circle</option>
-              <option>triangle</option>
-              <option>hexagon</option>
-              <option>lightning</option>
-            </select>
-          </div>
-          <div>
-            <label>Méret (px)</label>
-            <input id="crystalSize" type="number" value="120" min="40" max="240" />
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>Szín</label>
-            <input id="crystalColor" type="color" value="#b7f7ff" />
-          </div>
-          <div>
-            <label>Fény erő (0–1)</label>
-            <input id="crystalGlow" type="number" value="0.8" min="0" max="1" step="0.05" />
-          </div>
-        </div>
-        <div class="stack">
-          <button class="btn" id="placeCrystal">Kristály pozíció: kattints a vászonra</button>
-          <button class="btn" id="autoChest">Auto – mellkas közép</button>
-        </div>
-
-        <hr style="border-color:#1b1f2a;margin:14px 0">
-
-        <h3 style="margin:6px 0 0;font-size:12px;color:#cfd8e3">🧪 Trait-ek & CSV</h3>
-        <div class="row">
-          <div>
-            <label>Outfit szín</label>
-            <select id="outfitColor">
-              <option>green</option><option>blue</option><option>red</option><option>purple</option><option>orange</option><option>gold</option><option>silver</option><option>black</option><option>white</option>
-            </select>
-          </div>
-          <div>
-            <label>Ritkaság</label>
-            <select id="rarity">
-              <option>Common</option><option>Rare</option><option>Legendary</option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>Kezdő tokenID</label>
-            <input id="tokenStart" type="number" value="1" min="1" />
-          </div>
-          <div>
-            <label>Aktuális sorszám</label>
-            <input id="tokenCounter" type="number" value="1" min="1" />
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>Név sablon</label>
-            <input id="nameTemplate" type="text" value="All Star Penguin #{{id}}" />
-          </div>
-          <div>
-            <label>Leírás</label>
-            <input id="desc" type="text" value="Pixel mágus pingvin egyedi aurával és kristállyal." />
-          </div>
-        </div>
-
-        <div class="toolbar" style="margin-top:12px">
-          <button class="btn accent" id="renderBtn">Újrarajzolás</button>
-          <button class="btn" id="randomBtn">🎲 Randomizálás</button>
-          <button class="btn gold" id="exportOne">📦 Export PNG + Hozzáadás CSV-hez</button>
-          <button class="btn" id="downloadCsv">⬇️ CSV letöltése</button>
-        </div>
-        <small class="hint">Exportkor a fájlnév automatikus: 3 számjegy (pl. 001.png), és bekerül a CSV-be a megfelelő sor.</small>
-      </div>
-      <div class="footer-note">Protokoll: 1024×1024, középre igazítás, 70–75% méret (állítható), rotáló háttér, aura, egyedi mellkas-kristály. OpenSea CSV: tokenID, name, description, file_name, external_url, attribútumok.</div>
-    </section>
-
-    <!-- RIGHT: Canvas + CSV table -->
-    <section class="card">
-      <h2>🖼️ Vászon (1024×1024)</h2>
-      <div class="canvas-wrap">
-        <canvas id="cnv" width="1024" height="1024" title="Kattints a kristály helyéhez"></canvas>
-      </div>
-      <div class="body">
-        <div class="stack">
-          <span class="pill">Smoothing: <span id="smoothState">Off</span></span>
-          <span class="pill">Kristály pozíció: <span id="crPos">auto</span></span>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>📄 CSV előnézet</h2>
-      <div class="body">
-        <table id="csvTable">
-          <thead>
-            <tr>
-              <th>tokenID</th><th>name</th><th>description</th><th>file_name</th><th>external_url</th>
-              <th>attributes[Outfit Color]</th><th>attributes[Aura]</th><th>attributes[Crystal]</th><th>attributes[Rarity Tier]</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+      </fieldset>
+      <fieldset>
+        <legend>Aura</legend>
+        <label>
+          Type:
+          <select id="auraType">
+            <option value="none">None</option>
+            <option value="glow">Glow</option>
+            <option value="starry">Starry</option>
+            <option value="swirl">Swirl</option>
+            <option value="multicolor">Multicolor</option>
+          </select>
+        </label>
+        <label>
+          Color: <input type="color" id="auraColor" value="#3a66ff" />
+        </label>
+        <label>
+          Strength:
+          <input type="range" id="auraStrength" min="0" max="1" step="0.1" value="0.5" />
+          <span id="auraStrengthVal">0.5</span>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Chest Crystal</legend>
+        <label>
+          Shape:
+          <select id="crystalShape">
+            <option value="none">None</option>
+            <option value="diamond">Diamond</option>
+            <option value="star">Star</option>
+            <option value="circle">Circle</option>
+            <option value="triangle">Triangle</option>
+            <option value="hexagon">Hexagon</option>
+            <option value="lightning">Lightning</option>
+            <option value="spiral">Spiral</option>
+          </select>
+        </label>
+        <label>
+          Color: <input type="color" id="crystalColor" value="#ffffff" />
+        </label>
+        <label>
+          Size:
+          <input type="range" id="crystalSize" min="20" max="200" step="5" value="80" />
+          <span id="crystalSizeVal">80</span>
+        </label>
+        <label>
+          Brightness:
+          <input type="range" id="crystalBrightness" min="0" max="1" step="0.05" value="0.8" />
+          <span id="crystalBrightnessVal">0.8</span>
+        </label>
+        <button type="button" id="autoChest">Auto chest</button>
+      </fieldset>
+      <fieldset>
+        <legend>Traits</legend>
+        <label>
+          Outfit color:
+          <select id="outfitColor">
+            <option value="gold">Gold</option>
+            <option value="silver">Silver</option>
+            <option value="black">Black</option>
+            <option value="white">White</option>
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="blue">Blue</option>
+            <option value="purple">Purple</option>
+          </select>
+        </label>
+        <label>
+          Rarity:
+          <select id="rarityTier">
+            <option value="Common">Common</option>
+            <option value="Rare">Rare</option>
+            <option value="Legendary">Legendary</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Metadata</legend>
+        <label>
+          Name template:
+          <input type="text" id="nameTemplate" value="All Star Penguin #{{id}}" />
+        </label>
+        <label>
+          Description:
+          <textarea id="descriptionTemplate" rows="3">A unique All Star Penguin NFT.</textarea>
+        </label>
+        <label>
+          External URL:
+          <input type="text" id="externalUrl" placeholder="https://" />
+        </label>
+      </fieldset>
+      <button type="button" id="randomize">Randomize</button>
+      <button type="button" id="exportBtn">📦 Export PNG + Add to CSV</button>
+      <button type="button" id="downloadCsvBtn">📄 Download CSV</button>
+    </div>
+    <!-- Preview area -->
+    <div class="preview">
+      <canvas id="canvas" width="1024" height="1024"></canvas>
+    </div>
   </div>
-
-  <script>
-    // ===== State =====
-    const S = {
-      baseImg:null,
-      crystal:{ x:null, y:null },
-      rng:mulberry32(Date.now()>>>0),
-    };
-
-    // RNG helper (deterministic if seeded)
-    function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}}
-
-    // DOM refs
-    const cnv = document.getElementById('cnv');
-    const ctx = cnv.getContext('2d');
-
-    const el = id => document.getElementById(id);
-
-    // Inputs
-    const fileInput = el('fileInput');
-    const scalePct = el('scalePct');
-    const offsetY = el('offsetY');
-    const nearest = el('nearest');
-    const showGrid = el('showGrid');
-    const outline = el('outline');
-
-    const bgMode = el('bgMode');
-    const bgA = el('bgA');
-    const bgB = el('bgB');
-    const bgAngle = el('bgAngle');
-
-    const auraType = el('auraType');
-    const auraStrength = el('auraStrength');
-
-    const crystalShape = el('crystalShape');
-    const crystalSize = el('crystalSize');
-    const crystalColor = el('crystalColor');
-    const crystalGlow = el('crystalGlow');
-
-    const outfitColor = el('outfitColor');
-    const rarity = el('rarity');
-
-    const tokenStart = el('tokenStart');
-    const tokenCounter = el('tokenCounter');
-    const nameTemplate = el('nameTemplate');
-    const desc = el('desc');
-
-    const renderBtn = el('renderBtn');
-    const randomBtn = el('randomBtn');
-    const exportOne = el('exportOne');
-    const downloadCsv = el('downloadCsv');
-
-    const smoothState = el('smoothState');
-    const crPos = el('crPos');
-
-    const placeCrystal = el('placeCrystal');
-    const autoChest = el('autoChest');
-
-    const csvTableBody = document.querySelector('#csvTable tbody');
-
-    // ===== Image load =====
-    fileInput.addEventListener('change', e => {
-      const f = e.target.files && e.target.files[0];
-      if(!f) return;
-      const img = new Image();
-      img.onload = () => { S.baseImg = img; autoPlaceChest(); draw(); };
-      img.src = URL.createObjectURL(f);
-    });
-
-    // ===== Drawing pipeline =====
-    function draw(){
-      // Background
-      drawBackground();
-
-      // Aura (under character)
-      drawAura();
-
-      // Character sprite
-      drawSprite();
-
-      // Crystal (over character)
-      drawCrystal();
-
-      // Grid overlay
-      if(showGrid.checked) drawGrid();
-    }
-
-    function drawBackground(){
-      ctx.clearRect(0,0,1024,1024);
-      const mode = bgMode.value;
-      if(mode === 'none') return;
-      if(mode === 'solid'){
-        ctx.fillStyle = bgA.value;
-        ctx.fillRect(0,0,1024,1024);
-      } else if(mode === 'grad'){
-        const ang = Number(bgAngle.value) * Math.PI/180;
-        const r = Math.SQRT2 * 512;
-        const cx = 512, cy = 512;
-        const x1 = cx + Math.cos(ang) * -r;
-        const y1 = cy + Math.sin(ang) * -r;
-        const x2 = cx + Math.cos(ang) * r;
-        const y2 = cy + Math.sin(ang) * r;
-        const g = ctx.createLinearGradient(x1,y1,x2,y2);
-        g.addColorStop(0,bgA.value); g.addColorStop(1,bgB.value);
-        ctx.fillStyle = g;
-        ctx.fillRect(0,0,1024,1024);
-      }
-    }
-
-    function drawAura(){
-      const type = auraType.value;
-      if(type==='none') return;
-      const strength = clamp(+auraStrength.value,0,1);
-      if(type==='glow'){
-        const g = ctx.createRadialGradient(512,512,80,512,512,460);
-        g.addColorStop(0, hexA('#ffffff', 0.20*strength));
-        g.addColorStop(1, hexA('#ffffff', 0));
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(512,512,480,0,Math.PI*2); ctx.fill();
-      } else if(type==='starry'){
-        const n = Math.floor(200*strength);
-        for(let i=0;i<n;i++){
-          const r = 480*Math.sqrt(S.rng());
-          const t = 2*Math.PI*S.rng();
-          const x = 512 + r*Math.cos(t), y = 512 + r*Math.sin(t);
-          const s = 1 + S.rng()*2;
-          ctx.fillStyle = hexA('#ffffff', .5+.5*S.rng());
-          ctx.fillRect(x,y,s,s);
-        }
-      } else if(type==='swirl'){
-        ctx.save();
-        ctx.translate(512,512); ctx.rotate(-Math.PI/8);
-        for(let i=0;i<8;i++){
-          ctx.strokeStyle = hexA('#ffffff', .05*strength);
-          ctx.lineWidth = 10; ctx.beginPath();
-          ctx.arc(0,0,120+ i*40, i*0.7, i*0.7 + Math.PI*1.2);
-          ctx.stroke();
-        }
-        ctx.restore();
-      } else if(type==='multicolor'){
-        const g = ctx.createRadialGradient(512,512,60,512,512,480);
-        g.addColorStop(0, hexA('#ffccaa', .15*strength));
-        g.addColorStop(.4, hexA('#66ddff', .12*strength));
-        g.addColorStop(.7, hexA('#c5ff66', .10*strength));
-        g.addColorStop(1, hexA('#000000', 0));
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(512,512,480,0,Math.PI*2); ctx.fill();
-      }
-    }
-
-    function drawSprite(){
-      const img = S.baseImg; if(!img) return;
-      const pct = clamp(+scalePct.value,40,95)/100; // percent of canvas
-      const target = 1024*pct;
-      const w = img.width, h = img.height;
-      const aspect = w/h;
-      let dw, dh; if(aspect>=1){ dw = target; dh = target/aspect; } else { dh = target; dw = target*aspect; }
-      const dx = Math.round(512 - dw/2);
-      const dy = Math.round(512 - dh/2 + (+offsetY.value||0));
-
-      // Outline pass (simple shadow stroke)
-      if(outline.checked){
-        ctx.save();
-        ctx.imageSmoothingEnabled = false;
-        for(const [ox,oy] of [[1,0],[-1,0],[0,1],[0,-1]]){
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.filter = 'brightness(0)';
-          ctx.drawImage(img, dx+ox, dy+oy, dw, dh);
-        }
-        ctx.restore();
-      }
-
-      ctx.save();
-      ctx.imageSmoothingEnabled = !nearest.checked ? true : false; // if nearest checked, disable smoothing for crisp pixels
-      smoothState.textContent = nearest.checked ? 'Off (Nearest-Neighbor)' : 'On';
-      ctx.drawImage(img, dx, dy, dw, dh);
-      ctx.restore();
-
-      // cache for auto chest
-      S.spriteBox = {dx,dy,dw,dh};
-    }
-
-    function drawCrystal(){
-      const {x,y} = S.crystal;
-      const size = +crystalSize.value;
-      if(x==null||y==null) return;
-
-      // glow
-      const g = ctx.createRadialGradient(x,y,4,x,y,size);
-      g.addColorStop(0, hexA(crystalColor.value, +crystalGlow.value));
-      g.addColorStop(1, hexA(crystalColor.value, 0));
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,size*0.9,0,Math.PI*2); ctx.fill();
-
-      // core shape
-      ctx.fillStyle = crystalColor.value;
-      ctx.strokeStyle = hexA('#000000', .5);
-      ctx.lineWidth = 2;
-
-      ctx.beginPath();
-      switch(crystalShape.value){
-        case 'diamond':{ diamondPath(ctx, x,y, size*0.55, size*0.8); break; }
-        case 'circle':{ ctx.arc(x,y,size*0.30,0,Math.PI*2); break; }
-        case 'triangle':{ regularPolygon(ctx,x,y,3,size*0.35,-Math.PI/2); break; }
-        case 'hexagon':{ regularPolygon(ctx,x,y,6,size*0.34,0); break; }
-        case 'star':{ starPath(ctx,x,y,5,size*0.36,size*0.16); break; }
-        case 'lightning':{ lightningPath(ctx,x,y,size*0.28); break; }
-        case 'spiral':{ spiralPath(ctx,x,y,size*0.33); break; }
-      }
-      ctx.fill(); ctx.stroke();
-    }
-
-    function drawGrid(){
-      ctx.save();
-      ctx.strokeStyle = hexA('#ffffff', .06);
-      for(let i=0;i<=24;i++){
-        const p = Math.round(i*(1024/24));
-        ctx.beginPath(); ctx.moveTo(p,0); ctx.lineTo(p,1024); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0,p); ctx.lineTo(1024,p); ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    function diamondPath(ctx,x,y,rx,ry){
-      ctx.moveTo(x, y-ry); ctx.lineTo(x+rx, y); ctx.lineTo(x, y+ry); ctx.lineTo(x-rx, y); ctx.closePath();
-    }
-    function regularPolygon(ctx,x,y,n,r,rot=0){
-      for(let i=0;i<n;i++){
-        const a = rot + i*2*Math.PI/n; const px = x + r*Math.cos(a), py = y + r*Math.sin(a);
-        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-      }
-      ctx.closePath();
-    }
-    function starPath(ctx,x,y,points,outer,inner){
-      let a = -Math.PI/2; const da = Math.PI/points;
-      for(let i=0;i<points*2;i++){
-        const r = (i%2===0)?outer:inner; const px = x + r*Math.cos(a), py = y + r*Math.sin(a);
-        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); a+=da;
-      }
-      ctx.closePath();
-    }
-    function lightningPath(ctx,x,y,s){
-      ctx.moveTo(x-s*0.2,y-s*0.8); ctx.lineTo(x+s*0.2,y-s*0.1); ctx.lineTo(x-s*0.05,y-s*0.1); ctx.lineTo(x+s*0.1,y+s*0.7); ctx.lineTo(x-s*0.25,y+s*0.1); ctx.lineTo(x+s*0.05,y+s*0.1); ctx.closePath();
-    }
-    function spiralPath(ctx,x,y,r){
-      const turns=3; ctx.moveTo(x,y);
-      for(let t=0;t<turns* Math.PI*2;t+=.2){
-        const rr = r*(t/(turns*Math.PI*2)); ctx.lineTo(x+rr*Math.cos(t), y+rr*Math.sin(t));
-      }
-    }
-
-    // Helpers
-    function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
-    function hexA(hex, a){
-      hex = hex.replace('#','');
-      const r=parseInt(hex.substring(0,2),16), g=parseInt(hex.substring(2,4),16), b=parseInt(hex.substring(4,6),16);
-      return `rgba(${r},${g},${b},${a})`;
-    }
-
-    // ===== Crystal placement =====
-    function autoPlaceChest(){
-      if(!S.spriteBox){ S.crystal={x:512,y:600}; crPos.textContent='auto'; return; }
-      const {dx,dy,dw,dh} = S.spriteBox;
-      S.crystal = { x: Math.round(dx + dw*0.5), y: Math.round(dy + dh*0.60) };
-      crPos.textContent = `${S.crystal.x}, ${S.crystal.y}`;
-    }
-
-    cnv.addEventListener('click', e=>{
-      if(!placingCrystal) return;
-      const rect = cnv.getBoundingClientRect();
-      const x = Math.round((e.clientX-rect.left)* (1024/rect.width));
-      const y = Math.round((e.clientY-rect.top) * (1024/rect.height));
-      S.crystal = {x,y}; crPos.textContent = `${x}, ${y}`; placingCrystal=false; placeCrystal.textContent='Kristály pozíció: kattints a vászonra'; draw();
-    });
-
-    let placingCrystal=false;
-    placeCrystal.addEventListener('click', ()=>{ placingCrystal = !placingCrystal; placeCrystal.textContent = placingCrystal? '➡️ Kattints a vászonra':'Kristály pozíció: kattints a vászonra';});
-    autoChest.addEventListener('click', ()=>{ autoPlaceChest(); draw(); });
-
-    // ===== CSV handling =====
-    function pad3(n){ return String(n).padStart(3,'0'); }
-
-    function currentCsvRow(fileBase){
-      const id = Number(tokenCounter.value);
-      const name = nameTemplate.value.replaceAll('{{id}}', pad3(id));
-      const row = {
-        tokenID: id,
-        name,
-        description: desc.value,
-        file_name: `${pad3(id)}.png`,
-        external_url: '',
-        attrOutfit: outfitColor.value,
-        attrAura: auraType.value,
-        attrCrystal: crystalShape.value,
-        attrRarity: rarity.value,
-      };
-      return row;
-    }
-
-    function appendCsvRow(row){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${row.tokenID}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.description)}</td><td>${row.file_name}</td><td></td><td>${row.attrOutfit}</td><td>${row.attrAura}</td><td>${row.attrCrystal}</td><td>${row.attrRarity}</td>`;
-      csvTableBody.appendChild(tr);
-    }
-
-    function escapeHtml(s){return s.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
-
-    function tableToCsv(){
-      const header = ['tokenID','name','description','file_name','external_url','attributes[Outfit Color]','attributes[Aura]','attributes[Crystal]','attributes[Rarity Tier]'];
-      const rows = [header.join(',')];
-      for(const tr of csvTableBody.querySelectorAll('tr')){
-        const tds = [...tr.children].map(td=> '"'+ td.textContent.replaceAll('"','""') +'"');
-        rows.push(tds.join(','));
-      }
-      return rows.join('\n');
-    }
-
-    function download(filename, data){
-      const blob = new Blob([data], {type:'text/plain'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
-    }
-
-    // ===== Actions =====
-    renderBtn.addEventListener('click', draw);
-
-    randomBtn.addEventListener('click', ()=>{
-      // Background palette quick rotate
-      const palettes = [
-        ['#0b1020','#233b7c'], ['#1a0f10','#7c2323'], ['#04140f','#1c7c56'], ['#0f0f0f','#383838'], ['#2b0040','#7c2386'], ['#2b2b00','#7c6a23'], ['#0b1420','#2b6a9e']
-      ];
-      const p = palettes[Math.floor(S.rng()*palettes.length)];
-      bgA.value = p[0]; bgB.value = p[1];
-
-      // Aura & crystal
-      const aTypes = ['none','glow','starry','swirl','multicolor'];
-      auraType.value = aTypes[Math.floor(S.rng()*aTypes.length)];
-      auraStrength.value = (0.4 + S.rng()*0.6).toFixed(2);
-
-      const cShapes = ['spiral','diamond','star','circle','triangle','hexagon','lightning'];
-      crystalShape.value = cShapes[Math.floor(S.rng()*cShapes.length)];
-      crystalSize.value = Math.round(80 + S.rng()*120);
-      crystalGlow.value = (0.6 + S.rng()*0.4).toFixed(2);
-      crystalColor.value = randBrightHex();
-
-      // Outfit / rarity rotate
-      const outfits = ['green','blue','red','purple','orange','gold','silver','black','white'];
-      outfitColor.value = outfits[Math.floor(S.rng()*outfits.length)];
-      rarity.value = ['Common','Rare','Legendary'][Math.floor(S.rng()*3)];
-
-      // Minor pose tweaks
-      scalePct.value = Math.round(70 + S.rng()*6 + 1); // 71–77%
-      offsetY.value = Math.round(-10 + S.rng()*20);
-
-      autoPlaceChest();
-      draw();
-    });
-
-    function randBrightHex(){
-      const h = Math.floor(S.rng()*360); const s = 80 + Math.floor(S.rng()*20); const l = 60 + Math.floor(S.rng()*10);
-      return hslToHex(h,s,l);
-    }
-    function hslToHex(h,s,l){
-      s/=100; l/=100; const k=n=> (n + h/30) %12; const a=s*Math.min(l,1-l);
-      const f=n=> l - a*Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n),1)));
-      const toHex=x=> Math.round(x*255).toString(16).padStart(2,'0');
-      return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
-    }
-
-    exportOne.addEventListener('click', ()=>{
-      // Ensure draw is current
-      draw();
-      // Build filename and CSV row
-      const id = Number(tokenCounter.value);
-      const row = currentCsvRow();
-      // Download PNG
-      const link = document.createElement('a');
-      link.download = row.file_name;
-      link.href = cnv.toDataURL('image/png');
-      link.click();
-
-      // Append CSV row to table
-      appendCsvRow(row);
-
-      // Increment counter
-      tokenCounter.value = id + 1;
-    });
-
-    downloadCsv.addEventListener('click', ()=>{
-      const csv = tableToCsv();
-      download('metadata.csv', csv);
-    });
-
-    // Initial paint
-    draw();
-
-    // Re-render on any control change
-    document.querySelectorAll('input,select').forEach(i=>{
-      i.addEventListener('input', ()=>{
-        if(i===tokenStart) { tokenCounter.value = tokenStart.value; }
-        if(i===nearest){ smoothState.textContent = nearest.checked ? 'Off (Nearest-Neighbor)' : 'On'; }
-        draw();
-      });
-    });
-
-  </script>
+  <!-- CSV table listing -->
+  <div class="csv-list">
+    <table id="csvTable">
+      <thead>
+        <tr>
+          <th>tokenID</th>
+          <th>name</th>
+          <th>description</th>
+          <th>file_name</th>
+          <th>external_url</th>
+          <th>Outfit Color</th>
+          <th>Aura</th>
+          <th>Crystal</th>
+          <th>Rarity</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
